@@ -4,6 +4,8 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Exercise } from '../exercise.model';
 import { TrainingService } from '../training.service';
+import { Store } from '@ngrx/store';
+import * as fromTraining from '../training.reducer';
 
 @Component({
   selector: 'app-past-trainings',
@@ -16,14 +18,18 @@ export class PastTrainingsComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['date', 'name', 'duration', 'calories', 'state'];
   dataSource = new MatTableDataSource<Exercise>();
 
-  constructor(private trainingService: TrainingService) { }
+  constructor(private trainingService: TrainingService, private store: Store<fromTraining.State>) { }
+  
+  ngOnInit(): void {
+    this.store.select(fromTraining.getFinishedExercises).subscribe(exercises => {
+      this.dataSource.data = exercises;
+    });
+    this.trainingService.fetchCompletedOrCancelledExercises();
+  }
+  
   ngAfterViewInit(): void {
     this.dataSource.sort = this.sort!;
     this.dataSource.paginator = this.paginator!;
-  }
-
-  ngOnInit(): void {
-    this.dataSource.data = this.trainingService.getCompletedOrCancelledExercises();
   }
 
   doFilter(event: any) {

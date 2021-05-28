@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Exercise } from '../exercise.model';
 import { TrainingService } from '../training.service';
+import { Observable } from 'rxjs';
+import { Store } from '@ngrx/store';
+import * as fromTraining from '../training.reducer';
+import * as fromRoot from '../../app.reducer';
 
 @Component({
   selector: 'app-new-training',
@@ -9,12 +13,15 @@ import { TrainingService } from '../training.service';
   styleUrls: ['./new-training.component.css']
 })
 export class NewTrainingComponent implements OnInit {
-  exercises: Exercise[] = [];
+  exercises$?: Observable<Exercise[]>;
+  isLoading$?: Observable<boolean>;
 
-  constructor(private trainingService: TrainingService) { }
-
+  constructor(private trainingService: TrainingService, private store: Store<fromTraining.State>) { }
+  
   ngOnInit(): void {
-    this.exercises = this.trainingService.getAvailableExercise();
+    this.isLoading$ = this.store.select(fromRoot.getIsLoading);
+    this.exercises$ = this.store.select(fromTraining.getAvailableExercises);
+    this.trainingService.fetchAvailableExercise();
   }
 
   onStartTraining(form: NgForm) {
